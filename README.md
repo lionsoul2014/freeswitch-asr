@@ -1,5 +1,5 @@
 # Description
-A TTS module and a ASR module with auto Voice Active Detect supported for Freeswitch. 
+TTS and ASR module with auto Voice Active Detecting supported for Freeswitch. 
 I build it for Nature sound interactive, With the embedded LUA engine we could easly build a Freeswtich application like this.
 
 
@@ -42,8 +42,38 @@ asr_tts/mod_yyasr
 
 # How to test it ?
 Start the Freeswitch and install a Linphone client.
-1. Dial 5001 for TTS testing.
-2. Dial 5003 for ASR testing.
+1. Dial 5001 for TTS testing, check ./scripts/yytts_demo.lua for detail usage, module interface overview:
+```lua
+session:answer();   -- answer the call
+
+-- set to use the yytts TTS with zhilingf speaker
+session:set_tts_params("yytts", "zhilingf");
+
+-- fire the speak
+session:speak("Hello，我是人工智能电话系统, Bye!");
+
+-- hangup the call
+session:hangup();
+```
+
+2. Dial 5002 for ASR testing, check ./scripts/yyasr_demo for detail usage, ASR interface overview:
+```lua
+session:answer();   -- answer the call
+
+-- register the sound input callback
+session:setInputCallback(function onInput(s, type, obj) end);
+
+-- start to detect the speech to keep firing the feed interface insite yyasr module
+session:execute("detect_speech", "yyasr directory directory");
+
+-- resume the detect_speech
+session:execute("detect_speech", "resume");
+
+-- stop the detecting
+session:execute("detect_speech", "stop");
+
+-- check ./script/yyasr_demo for details usage.
+```
 
 
 # Secondary development
@@ -68,9 +98,9 @@ tts_interface->speech_float_param_tts = yytts_float_param_tts;
 ```
 open
 while ( thread running ) do
-	feed
-	read
-	flush
+  feed
+  read
+  flush
 end
 close
 ```
@@ -109,9 +139,9 @@ asr_interface->asr_float_param = yyasr_asr_float_param;
 ```
 open
 while ( thread running ) do
-	feed
-	check_results
-	get_results
+  feed
+  check_results
+  get_results
 end
 optional pause|resume
 close
