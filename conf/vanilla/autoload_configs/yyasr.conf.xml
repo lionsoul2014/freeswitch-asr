@@ -1,0 +1,31 @@
+<configuration name="yyasr.conf" description="yuanyu asr configuration">
+  <settings>
+    <param name="app-key" value="get-the-app-key-from-yuanyu.ai-console"/>
+    <param name="engine" value="aispeech"/>
+    <param name="model" value="comm"/>
+    <param name="vad" value="true"/>
+    <param name="nlu" value="true"/>
+    <param name="silence-avg-threshold" value="128"/>
+    <param name="silence-max-threshold" value="540"/>
+    <param name="feed-min-avg-energy" value="30"/>
+    <param name="feed-min-max-energy" value="164"/>
+    <param name="silence-hangover" value="25"/>
+    <param name="no-input-hangover" value="400"/>
+    <param name="min-listen-hits" value="10"/>
+    <!-- 1024 * 32-->
+    <param name="audio-buffer-size" value="32768"/>
+    <!-- 1024 * 1024 * 2-->
+    <param name="buffer-max-size" value="2097152"/>
+    <!-- 48 -->
+    <param name="text-buffer-size" value="48"/>
+    <!-- 1024 * 2-->
+    <param name="text-max-size" value="2048"/>
+    <!-- 1024 * 30 -->
+    <param name="text-buffer-size" value="30720"/>
+    <!-- 1024 * 100 -->
+    <param name="text-max-size" value="102400"/>
+    <param name="auto-reload" value="true"/>
+    <!-- save the wave file for debug -->
+    <!-- <param name="wav_file_dir" value="/tmp/"/> -->
+  </settings>
+</configuration>

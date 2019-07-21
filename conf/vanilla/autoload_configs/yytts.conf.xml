@@ -1,0 +1,17 @@
+<configuration name="yytts.conf" description="yuanyu tts configuration">
+  <settings>
+    <param name="app-key" value="get-the-app-key-from-yuanyu.ai-console"/>
+    <!--
+    all available voices
+    anonyf | qianranf | hyanif | lzyinf | dlaf | zhilingf | anonyg | xijunm | geyou
+    gdgm | swkm | hbrinf | zxcm | gqlanf | lucyf | zzxiangm
+    -->
+    <param name="voice" value="zhilingf"/>
+    <param name="audio-type" value="wav"/>
+    <!-- 1024 * 48-->
+    <param name="buffer-size" value="49152"/>
+    <!-- 1024 * 1024 * 4-->
+    <param name="buffer-max-size" value="4194304"/>
+    <param name="auto-reload" value="true"/>
+  </settings>
+</configuration>
