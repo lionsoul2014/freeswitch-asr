@@ -1,6 +1,3 @@
-local curl  = require("curl");
-local cjson = require("cjson");
-
 -- asr text for one round
 local asr_text = nil;
 
