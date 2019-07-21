@@ -1,10 +1,10 @@
-## Description
+# Description
 A TTS module and a ASR module with auto Voice Active Detect supported for Freeswitch. 
 I build it for Nature sound interactive, With the embedded LUA engine we could easly build a Freeswtich application like this.
 
 
-## How to use it ?
-1. Copy and merge the ${root}/src and the ${root}/conf with the Freeswitch source tree.
+# How to use it ?
+1. Copy and merge the ${PROJECT_ROOT}/src and the ${PROJECT_ROOT}/conf with the Freeswitch source tree.
 2. Add the following two module in the ${FREESWITCH_SOURCE_ROOT}/modules.conf
 ```
 asr_tts/mod_yytts
@@ -18,7 +18,7 @@ asr_tts/mod_yyasr
 <load module="mod_yyasr"/>
 ```
 
-5. Copy the lua scripts under ${root}/scripts to ${FREESWITCH_INSTALLATION_ROOT}/scripts/
+5. Copy the lua scripts under ${PROJECT_ROOT}/scripts to ${FREESWITCH_INSTALLATION_ROOT}/scripts/
 6. Bind a number to build application by adding the following xml settings to the ${FREESWITCH_INSTALLATION_ROOT}/conf/dialplan/default.xml
 ```
 <!-- yytts tts module testing -->
@@ -40,14 +40,15 @@ asr_tts/mod_yyasr
 </extension>
 ``` 
 
-## How to test it ?
+# How to test it ?
 Start the Freeswitch and install a Linphone client.
-Dial 5001 for TTS testing and 5003 for ASR testing.
+1. Dial 5001 for TTS testing.
+2. Dial 5003 for ASR testing.
 
 
-## Secondary development
+# Secondary development
 
-#### TTS module
+### TTS module
 1. TTS module structure:
 ```c
 *module_interface = switch_loadable_module_create_module_interface(pool, modname);
@@ -84,7 +85,7 @@ static switch_status_t yytts_speech_feed_tts(switch_speech_handle_t *sh, char *t
 }
 ```
 
-#### ASR module
+### ASR module
 1. ASR module structure:
 ```
 asr_interface = switch_loadable_module_create_interface(*module_interface, SWITCH_ASR_INTERFACE);
@@ -129,95 +130,11 @@ static switch_status_t yyasr_asr_feed(
 
 /*
  * Voice Active detecting implementation.
- * 
- * internal function to recv the audio input and do the stop detect checking
- *
- * @param   ah
- * @param   data
- * @param   samples
+ * Optimize the VAD by modify stop_audio_detect function.
 */
 static switch_bool_t stop_audio_detect(
     switch_asr_handle_t *ah, int16_t *data, unsigned int samples)
 {
-    int16_t one_sample;
-    register int16_t abs_sample;
-    double energy = 0;
-    uint32_t c = 0, avg_energy, max_energy, resamples;
-    yyasr_t *yyasr = (yyasr_t *) ah->private_info;
-
-
-    // simple sample energy threshold for VAD
-    abs_sample = abs(data[0]);
-    energy = abs_sample;
-    max_energy = abs_sample;
-    for ( c = 1; c < samples; c++ ) {
-        abs_sample = abs(data[c]);
-        energy += abs_sample;
-        if ( abs_sample > max_energy ) {
-            max_energy = abs_sample;
-        }
-    }
-
-    avg_energy = (uint32_t) (energy / samples);
-    if ( avg_energy > globals.silence_avg_threshold 
-        || max_energy > globals.silence_max_threshold ) {
-        yyasr->hangover_hits = 0;
-        yyasr->listen_hits++;
-    } else {
-        yyasr->hangover_hits++;
-    }
-
-
-    /* copy the sample data to the audio buffer
-     * for recognition usage later (2 bytes for each sample) */
-    // switch_log_printf(
-    //     SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,
-    //     "hangover_hits=%d, avg_energy=%u, max_energy=%u\n", 
-    //     yyasr->hangover_hits, avg_energy, max_energy
-    // );
-    if ( avg_energy > globals.feed_min_avg_energy 
-        || max_energy > globals.feed_min_max_energy ) {
-        /* resample the data */
-        resamples = samples / 3;
-        for ( c = 0; c < samples; c += 3 ) {
-            one_sample = (data[c] + data[c+1] + data[c+2]) / 3;
-            switch_buffer_write(yyasr->audio_buffer, &one_sample, sizeof(int16_t));
-        }
-
-        yyasr->audio_size += resamples * sizeof(int16_t);
-        if ( yyasr->audio_size >= globals.audio_buffer_max_size ) {
-            yyasr->audio_size = globals.audio_buffer_max_size;
-            switch_set_flag_locked(yyasr, YY_FLAG_SPEECH_TIMEOUT);
-            return SWITCH_TRUE;
-        }
-    }
-
-
-    /* Check the silence timeout */
-    if ( yyasr->hangover_hits > 0 && switch_test_flag(yyasr, YY_FLAG_INPUT_TIMERS) ) {
-        if ( yyasr->listen_hits <= globals.min_listen_hits ) {
-            if ( yyasr->hangover_hits >= globals.no_input_hangover 
-                && ! switch_test_flag(yyasr, YY_FLAG_NOINPUT_TIMEOUT) ) {
-                /*no input timeout*/
-                switch_mutex_lock(yyasr->flag_mutex);
-                switch_clear_flag(yyasr, YY_FLAG_READY);
-                switch_set_flag(yyasr, YY_FLAG_NOINPUT_TIMEOUT);
-                switch_mutex_unlock(yyasr->flag_mutex);
-                // switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "no input timeout\n");
-                return SWITCH_TRUE;
-            }
-        } else if ( yyasr->hangover_hits >= globals.silence_hangover 
-            && ! switch_test_flag(yyasr, YY_FLAG_SPEECH_TIMEOUT) ) {
-            /*silence timeout*/
-            switch_mutex_lock(yyasr->flag_mutex);
-            switch_clear_flag(yyasr, YY_FLAG_READY);
-            switch_set_flag(yyasr, YY_FLAG_SPEECH_TIMEOUT);
-            switch_mutex_unlock(yyasr->flag_mutex);
-            // switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "silence timeout\n");
-            return SWITCH_TRUE;
-        }
-    }
-
     return SWITCH_FALSE;
 }
 ```
